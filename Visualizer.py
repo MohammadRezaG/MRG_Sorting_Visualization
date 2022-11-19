@@ -2,19 +2,20 @@ import pygame
 import random
 import math
 from Data_arr import DataArr
-import sorters
-
-pygame.init()
+import sorters, color_constants
+import threading
 
 WIDTH, HEIGHT = 1200, 900
 
 
 class Visualizer:
     BLACK = 0, 0, 0
-    DARK_GRAY = 50, 50, 50
-    WHITE = 255, 255, 255
-    GREEN = 0, 255, 0
-    RED = 255, 0, 0
+    DARK_GRAY = color_constants.GRAY10
+    LITE_GRAY = color_constants.GRAY
+    WHITE = color_constants.WHITE
+    GREEN = color_constants.GREEN1
+    RED = color_constants.RED1
+    BLUE = color_constants.BLUE
     BACKGROUND_COLOR = DARK_GRAY
 
     GRADIENTS = [
@@ -23,32 +24,52 @@ class Visualizer:
         (192, 192, 192)
     ]
 
-    FONT = pygame.font.SysFont('comicsans', 30)
-    LARGE_FONT = pygame.font.SysFont('comicsans', 40)
-
     SIDE_PAD = 50
     TOP_PAD = 150
 
-    def __init__(self, width, height, arr):
+    def reset(self):
+        self.arr = DataArr(self.arr_gen(self.n_arr, self.min_val, self.max_val), draw_info=self)
+
+        self.block_width = round((self.width - self.SIDE_PAD) / len(self.arr))
+        self.block_height = math.floor(
+            (self.height - self.TOP_PAD) / (self.max_val - self.min_val))
+        self.start_x = self.SIDE_PAD // 2
+
+    def init(self):
+        pygame.init()
+        self.SMALL_FONT = pygame.font.SysFont('comicsans', 10)
+        self.FONT = pygame.font.SysFont('comicsans', 20)
+        self.LARGE_FONT = pygame.font.SysFont('comicsans', 30)
+        self.window = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("Sorting Algorithm Visualization")
+
+    def __init__(self, width, height, init=False, arr_gen=None, n_arr=50, min_val=5, max_val=100, mt_flag=True):
         self.width = width
         self.height = height
 
-        self.window = pygame.display.set_mode((width, height))
-        pygame.display.set_caption("Sorting Algorithm Visualization")
+        if init:
+            self.init()
 
-        self.arr = DataArr(arr, draw_info=self)
-        self.min_val = min(arr)
-        self.max_val = max(arr)
+        self.n_arr = n_arr
+        self.min_val = min_val
+        self.max_val = max_val
+
+        if arr_gen is None:
+            self.arr_gen = self.generate_starting_arr
+        else:
+            self.arr_gen = arr_gen
+
+        self.mt_flag = mt_flag
 
         self.color_positions = {}
         self.black_bg = True
         self.bg_side_margin = 20
         self.bg_top_margin = 20
 
-        self.block_width = round((self.width - self.SIDE_PAD) / len(arr))
-        self.block_height = math.floor(
-            (self.height - self.TOP_PAD) / (self.max_val - self.min_val))
-        self.start_x = self.SIDE_PAD // 2
+        self.reset()
+
+        self.sorting_algorithm_name = 'None'
+        self.sorting_algorithm = 'None'
 
     def draw_bars(self, ):
         arr = self.arr._arr
@@ -77,6 +98,30 @@ class Visualizer:
     def draw(self):
         self.window.fill(self.BACKGROUND_COLOR)
 
+        lbl_algorithm = self.FONT.render(
+            f"algorithm {self.sorting_algorithm_name}", 1, self.GREEN)
+        self.window.blit(lbl_algorithm, (2, 5))
+
+        lbl_arr_accesses_time = self.FONT.render(
+            f"array accesses time {self.arr.arr_accesses_time}", 1, self.LITE_GRAY)
+        self.window.blit(lbl_arr_accesses_time, (2, 100))
+
+        lbl_arr_accesses_time = self.FONT.render(
+            f"array accesses cunt {self.arr.arr_accesses}", 1, self.LITE_GRAY)
+        self.window.blit(lbl_arr_accesses_time, (2, 80))
+
+        lbl_arr_accesses_time = self.FONT.render(
+            f"multithreading {self.mt_flag}", 1, self.LITE_GRAY)
+        self.window.blit(lbl_arr_accesses_time, (2, 60))
+
+        lbl_arr_accesses_time = self.FONT.render(
+            f"n_arr {self.n_arr}", 1, self.LITE_GRAY)
+        self.window.blit(lbl_arr_accesses_time, (2, 40))
+
+        lbl_reset = self.FONT.render(
+            f"for reset press R", 1, self.BLUE)
+        self.window.blit(lbl_reset, (self.width - lbl_reset.get_size()[0] - 10, 80))
+
         self.draw_bars()
 
         pygame.display.update()
@@ -86,25 +131,47 @@ class Visualizer:
         return [random.randint(min_val, max_val) for i in range(size)]
 
 
-def visualize(width, height):
+def change_sorting_algorithm(i, al_dict: dict):
+    al_dict_keys = list(al_dict.keys())
+    if i >= len(al_dict_keys):
+        i = 0
+    elif i < 0:
+        i = len(al_dict_keys) - 1
+    al_name = al_dict_keys[i]
+    return al_dict[al_name], al_name, i
+
+
+def run_sorting_algorithm(sorting_algorithm, arr, sorting_lock=None, mt=False, mt_name='sorting_algorithm'):
+    if mt:
+        def thread(funk, a, lock: threading.Lock):
+            lock.acquire()
+            sorting_algorithm(arr)
+            lock.release()
+
+        if sorting_lock:
+            thread = threading.Thread(target=thread, name=mt_name,
+                                      kwargs={'funk': sorting_algorithm, 'a': arr, 'lock': sorting_lock})
+            thread.start()
+        else:
+            raise ValueError('sorting_lock cant be None')
+
+    else:
+        sorting_algorithm(arr)
+
+
+def visualize(draw_info):
+    if not pygame.get_init():
+        draw_info.init()
     run = True
     clock = pygame.time.Clock()
+    # arr = [0,0,0,0,1,1,1,120,2,2,1,1,1,1,10,0,0,0,0]
 
-    n = 50
-    min_val = 5
-    max_val = 100
-
-    arr = Visualizer.generate_starting_arr(n, min_val, max_val)
-    #arr = [0,0,0,0,1,1,1,120,2,2,1,1,1,1,10,0,0,0,0]
-    draw_info = Visualizer(width, height, arr)
     draw_info.arr.arr_accesses_time = 0.09
+    i = 0
+    sorter = sorters.Sorters()
+    draw_info.sorting_algorithm, draw_info.sorting_algorithm_name, i = change_sorting_algorithm(i, sorter.antilogarithms_dict)
 
-    sorting = False
-    ascending = True
-
-    sorting_algorithm = sorters.Sorters.bubble_sort
-    sorting_algo_name = "Bubble Sort"
-    sorting_algorithm_generator = None
+    sorting_lock = threading.Lock()
 
     while run:
         clock.tick(60)
@@ -114,11 +181,45 @@ def visualize(width, height):
                 run = False
 
             if event.type == pygame.KEYDOWN:
+                keys = pygame.key.get_pressed()
                 if event.key == pygame.K_t:
                     print("t")
-                elif event.key == pygame.K_SPACE and sorting is False:
-                    sorting = True
-                    sorting_algorithm_generator = sorting_algorithm(draw_info.arr)
+                elif keys[pygame.K_SPACE] and sorting_lock.locked() is False:
+
+                    run_sorting_algorithm(draw_info.sorting_algorithm, draw_info.arr, sorting_lock=sorting_lock,
+                                          mt=draw_info.mt_flag,
+                                          mt_name='sorting_algorithm')
+
+                elif keys[pygame.K_r] and sorting_lock.locked() is False:
+                    draw_info.reset()
+
+                # change sorting_algorithm a key
+                elif keys[pygame.K_a] and keys[pygame.K_UP]:
+                    i += 1
+                    sorting_algorithm, draw_info.sorting_algorithm_name, i = change_sorting_algorithm(i,
+                                                                                                      sorter.antilogarithms_dict)
+                elif keys[pygame.K_a] and keys[pygame.K_DOWN]:
+                    i -= 1
+                    sorting_algorithm, draw_info.sorting_algorithm_name, i = change_sorting_algorithm(i,
+                                                                                                      sorter.antilogarithms_dict)
+                # change arr_accesses_time t key
+                elif keys[pygame.K_t] and keys[pygame.K_UP]:
+                    draw_info.arr.arr_accesses_time += 0.01
+                elif keys[pygame.K_t] and keys[pygame.K_DOWN]:
+                    draw_info.arr.arr_accesses_time -= 0.01
+
+                # change n_arr n key
+                elif keys[pygame.K_n] and keys[pygame.K_UP]:
+                    draw_info.n_arr += 2
+                elif keys[pygame.K_n] and keys[pygame.K_DOWN]:
+                    draw_info.n_arr -= 1
+
+                # change mt_flag m key
+                elif keys[pygame.K_m]:
+                    if draw_info.mt_flag:
+                        draw_info.mt_flag = False
+                    else:
+                        draw_info.mt_flag = True
 
         draw_info.draw()
 
@@ -126,4 +227,5 @@ def visualize(width, height):
 
 
 if __name__ == "__main__":
-    visualize(WIDTH, HEIGHT)
+    draw_info = Visualizer(WIDTH, HEIGHT, init=True)
+    visualize(draw_info)
