@@ -190,6 +190,13 @@ def visualize(draw_info):
                                           mt=draw_info.mt_flag,
                                           mt_name='sorting_algorithm')
 
+                elif keys[pygame.K_SPACE] and sorting_lock.locked() is True and not draw_info.arr.arr_lock.locked():
+                    draw_info.arr.arr_lock.acquire()
+
+                elif keys[pygame.K_SPACE] and sorting_lock.locked() is True and draw_info.arr.arr_lock.locked():
+                    draw_info.arr.arr_lock.release()
+
+
                 elif keys[pygame.K_r] and sorting_lock.locked() is False:
                     draw_info.reset()
 

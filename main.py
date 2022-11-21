@@ -32,8 +32,17 @@ def sort(sorters, draw_info:Visualizer):
     stop = False
     arr = []
     while not stop:
-        in_s = input('input an aray exp: 1,2,3,4 or put rnd for random generated arr')
-        if in_s is 'rnd':
+        in_s = input('input an aray exp: 1,2,3,4 or put rnd for random generated arr\n')
+        if in_s == 'rnd':
+            in_s = input(
+            'input number of val [n] min value [min_val] max value [max_val] in this format ( n min_val max_val ) default is (100 5 100) )\n'
+            )
+            if in_s != '':
+                n, min_val, max_val = map(int, in_s.split(' '))
+            else:
+                n, min_val, max_val = 100, 5, 100
+
+            arr = Visualizer.generate_starting_arr(n, min_val=min_val, max_val=max_val)
             stop = True
         elif ',' in in_s:
             for s in in_s.split(','):
@@ -47,7 +56,9 @@ def sort(sorters, draw_info:Visualizer):
     sorting_algorithm, sorting_algorithm_name, _ = change_sorting_algorithm(sorters_inx, sorters.antilogarithms_dict)
 
     print(f'sorting using {sorting_algorithm_name} algorithm')
-    print(f'bef')
+    print(f'before sorting \n arr => {str(d_arr)}')
+    sorting_algorithm(d_arr)
+    print(f'after sorting \n arr => {d_arr}')
 
 
 if __name__ == "__main__":
@@ -69,6 +80,7 @@ if __name__ == "__main__":
         visualize_item = FunctionItem("visualize", visualize, [draw_info])
         do_some_sort_item = FunctionItem("sort", sort, [sorters, draw_info])
 
+        menu.append_item(do_some_sort_item)
         menu.append_item(visualize_item)
 
         menu.append_item(settings_item)

@@ -1,5 +1,6 @@
 import random
 import time
+from threading import Lock
 
 
 class DataArr:
@@ -15,6 +16,7 @@ class DataArr:
         self.last_accessed_idx = None
         self.first_accessed_status = False
         self._arr_accesses_time = arr_accesses_time
+        self.arr_lock = Lock()
 
     def _set_accessed_color(self, i):
         self.arr_color = {}
@@ -59,6 +61,9 @@ class DataArr:
 
         if self._arr_accesses_time != 0:
             time.sleep(self._arr_accesses_time)
+        if self.arr_lock.locked():
+            self.arr_lock.acquire()
+            self.arr_lock.release()
 
         self.draw_info.color_positions = self.arr_color
 
@@ -111,7 +116,7 @@ class DataArr:
         return reversed(self.arr)
 
     def __str__(self):
-        str(self.arr)
+        return str(self.arr)
 
     def __repr__(self):
         return self.arr.__repr__()
