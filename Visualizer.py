@@ -66,10 +66,9 @@ class Visualizer:
         self.bg_side_margin = 20
         self.bg_top_margin = 20
 
-        self.reset()
-
         self.sorting_algorithm_name = 'None'
         self.sorting_algorithm = 'None'
+        self.reset()
 
     def draw_bars(self, ):
         arr = self.arr._arr
@@ -145,7 +144,7 @@ def run_sorting_algorithm(sorting_algorithm, arr, sorting_lock=None, mt=False, m
     if mt:
         def thread(funk, a, lock: threading.Lock):
             lock.acquire()
-            sorting_algorithm(arr)
+            funk(a)
             lock.release()
 
         if sorting_lock:
@@ -157,6 +156,7 @@ def run_sorting_algorithm(sorting_algorithm, arr, sorting_lock=None, mt=False, m
 
     else:
         sorting_algorithm(arr)
+        return None
 
 
 def visualize(draw_info):
@@ -169,7 +169,8 @@ def visualize(draw_info):
     draw_info.arr.arr_accesses_time = 0.09
     i = 0
     sorter = sorters.Sorters()
-    draw_info.sorting_algorithm, draw_info.sorting_algorithm_name, i = change_sorting_algorithm(i, sorter.antilogarithms_dict)
+    draw_info.sorting_algorithm, draw_info.sorting_algorithm_name, i = change_sorting_algorithm(i,
+                                                                                                sorter.antilogarithms_dict)
 
     sorting_lock = threading.Lock()
 
@@ -182,11 +183,11 @@ def visualize(draw_info):
 
             if event.type == pygame.KEYDOWN:
                 keys = pygame.key.get_pressed()
-                if event.key == pygame.K_t:
-                    print("t")
-                elif keys[pygame.K_SPACE] and sorting_lock.locked() is False:
 
-                    run_sorting_algorithm(draw_info.sorting_algorithm, draw_info.arr, sorting_lock=sorting_lock,
+                if keys[pygame.K_SPACE] and sorting_lock.locked() is False:
+
+                    run_sorting_algorithm(draw_info.sorting_algorithm, draw_info.arr,
+                                          sorting_lock=sorting_lock,
                                           mt=draw_info.mt_flag,
                                           mt_name='sorting_algorithm')
 
@@ -196,9 +197,26 @@ def visualize(draw_info):
                 elif keys[pygame.K_SPACE] and sorting_lock.locked() is True and draw_info.arr.arr_lock.locked():
                     draw_info.arr.arr_lock.release()
 
-
-                elif keys[pygame.K_r] and sorting_lock.locked() is False:
+                elif (keys[pygame.K_r] and sorting_lock.locked() is False) or \
+                        (keys[pygame.K_r] and draw_info.arr.arr_lock.locked()):
                     draw_info.reset()
+
+                # change arr_accesses_time t key
+                elif keys[pygame.K_t] and keys[pygame.K_UP]:
+                    if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
+                        draw_info.arr.arr_accesses_time += 0.001
+                    else:
+                        draw_info.arr.arr_accesses_time += 0.01
+                elif keys[pygame.K_t] and keys[pygame.K_DOWN]:
+                    if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
+                        draw_info.arr.arr_accesses_time -= 0.001
+                    else:
+                        draw_info.arr.arr_accesses_time -= 0.01
+
+                # prevent changes when sorting_lock.locked() is True
+                elif sorting_lock.locked():
+                    #print('cant changes algoritm n_arr multithreading when running')
+                    continue
 
                 # change sorting_algorithm a key
                 elif keys[pygame.K_a] and keys[pygame.K_UP]:
@@ -209,17 +227,19 @@ def visualize(draw_info):
                     i -= 1
                     sorting_algorithm, draw_info.sorting_algorithm_name, i = change_sorting_algorithm(i,
                                                                                                       sorter.antilogarithms_dict)
-                # change arr_accesses_time t key
-                elif keys[pygame.K_t] and keys[pygame.K_UP]:
-                    draw_info.arr.arr_accesses_time += 0.01
-                elif keys[pygame.K_t] and keys[pygame.K_DOWN]:
-                    draw_info.arr.arr_accesses_time -= 0.01
 
                 # change n_arr n key
                 elif keys[pygame.K_n] and keys[pygame.K_UP]:
-                    draw_info.n_arr += 2
+                    if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
+                        draw_info.n_arr += 10
+                    else:
+                        draw_info.n_arr += 1
+
                 elif keys[pygame.K_n] and keys[pygame.K_DOWN]:
-                    draw_info.n_arr -= 1
+                    if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
+                        draw_info.n_arr -= 10
+                    else:
+                        draw_info.n_arr -= 1
 
                 # change mt_flag m key
                 elif keys[pygame.K_m]:

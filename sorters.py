@@ -33,7 +33,7 @@ class Sorters:
         """
         antilogarithms_dict = {}
         for module_name in papa_module.__dir__():
-            if 'sort' in module_name and (not '__' in module_name):
+            if 'sort' in module_name and (not '__' in module_name) and (module_name[0] != '_'):
                 module = getattr(papa_module, module_name)
                 if isinstance(module, types.FunctionType):
                     antilogarithms_dict[module_name] = module
@@ -45,7 +45,7 @@ class Sorters:
     def get_antilogarithms_list(sorters):
         antilogarithms_dict = {}
         for al_name in sorters.__dir__():
-            if 'sort' in al_name:
+            if 'sort' in al_name and (al_name[0] != '_'):
                 antilogarithms_dict[al_name] = getattr(sorters, al_name)
         return antilogarithms_dict
 

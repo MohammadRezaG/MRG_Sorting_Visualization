@@ -32,8 +32,8 @@ def sort(sorters, draw_info:Visualizer):
     stop = False
     arr = []
     while not stop:
-        in_s = input('input an aray exp: 1,2,3,4 or put rnd for random generated arr\n')
-        if in_s == 'rnd':
+        in_s = input('input an aray exp: 1,2,3,4 or put rnd for random generated arr default is (rnd)\n')
+        if in_s == 'rnd' or in_s == '':
             in_s = input(
             'input number of val [n] min value [min_val] max value [max_val] in this format ( n min_val max_val ) default is (100 5 100) )\n'
             )
