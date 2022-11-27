@@ -9,4 +9,4 @@ press **space** for start or pause
 
 **T**  For **delay time between access**
 
-**N**  For **array length **
+**N**  For **array length**
