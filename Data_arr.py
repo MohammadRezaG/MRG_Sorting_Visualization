@@ -21,14 +21,14 @@ class DataArr:
     def _set_accessed_color(self, i):
         self.arr_color = {}
         if self.first_accessed_idx:
-            self.arr_color[self.first_accessed_idx] = self.draw_info.GREEN
+            self.arr_color[self.first_accessed_idx] = self.draw_info.PURPLE
 
         if not self.first_accessed_status:
-            self.arr_color[i] = self.draw_info.GREEN
+            self.arr_color[i] = self.draw_info.PURPLE
             self.first_accessed_idx = i
             self.first_accessed_status = True
         else:
-            self.arr_color[i] = self.draw_info.RED
+            self.arr_color[i] = self.draw_info.PINK
 
         self.last_accessed_idx = i
 

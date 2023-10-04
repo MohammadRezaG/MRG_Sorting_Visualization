@@ -15,7 +15,9 @@ class Visualizer:
     WHITE = color_constants.WHITE
     GREEN = color_constants.GREEN1
     RED = color_constants.RED1
-    BLUE = color_constants.BLUE
+    BLUE = color_constants.AQUA
+    PURPLE = color_constants.PURPLE
+    PINK = color_constants.DEEPPINK3
     BACKGROUND_COLOR = DARK_GRAY
 
     GRADIENTS = [
@@ -70,7 +72,7 @@ class Visualizer:
         self.sorting_algorithm = 'None'
         self.reset()
 
-    def draw_bars(self, ):
+    def draw_bars(self):
         arr = self.arr._arr
 
         if self.black_bg:
@@ -98,23 +100,27 @@ class Visualizer:
         self.window.fill(self.BACKGROUND_COLOR)
 
         lbl_algorithm = self.FONT.render(
-            f"algorithm {self.sorting_algorithm_name}", 1, self.GREEN)
+            f"algorithm: {self.sorting_algorithm_name}", 1, self.BLUE)
         self.window.blit(lbl_algorithm, (2, 5))
 
         lbl_arr_accesses_time = self.FONT.render(
-            f"array accesses time {self.arr.arr_accesses_time}", 1, self.LITE_GRAY)
-        self.window.blit(lbl_arr_accesses_time, (2, 100))
-
-        lbl_arr_accesses_time = self.FONT.render(
-            f"array accesses cunt {self.arr.arr_accesses}", 1, self.LITE_GRAY)
+            f"array accesses time: {self.arr.arr_accesses_time}", 1, self.LITE_GRAY)
         self.window.blit(lbl_arr_accesses_time, (2, 80))
 
         lbl_arr_accesses_time = self.FONT.render(
-            f"multithreading {self.mt_flag}", 1, self.LITE_GRAY)
+            f"array accesses count: {self.arr.arr_accesses}", 1, self.LITE_GRAY)
+        self.window.blit(lbl_arr_accesses_time, (350, 80))
+
+        lbl_arr_writes_time = self.FONT.render(
+            f"array writes count: {self.arr.arr_writes}", 1, self.LITE_GRAY)
+        self.window.blit(lbl_arr_writes_time, (350, 60))
+
+        lbl_arr_accesses_time = self.FONT.render(
+            f"multithreading: {self.mt_flag}", 1, self.LITE_GRAY)
         self.window.blit(lbl_arr_accesses_time, (2, 60))
 
         lbl_arr_accesses_time = self.FONT.render(
-            f"n_arr {self.n_arr}", 1, self.LITE_GRAY)
+            f"n_arr: {self.n_arr}", 1, self.LITE_GRAY)
         self.window.blit(lbl_arr_accesses_time, (2, 40))
 
         lbl_reset = self.FONT.render(
